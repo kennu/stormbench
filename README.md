@@ -12,11 +12,6 @@ a central Redis server, which also coordinates the clients so they
 start their benchmarks at the same time. At the end, StormBench
 reads the results and combines them to a single report.
 
-To save money, AWS Spot Instances can be used instead of normally
-priced EC2 instances. If enough Spot Instances cannot be purchased,
-StormBench will automatically launch normal EC2 instances for the
-remaining number of nodes required.
-
 StormBench will tag all resources it uses on EC2 with the tag
 "StormBench:True". This tag is used to clean them up afterwards,
 even if a test run or image creation is aborted. Additionally, the

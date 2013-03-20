@@ -354,25 +354,34 @@ class RedisManager(object):
     
     def print_results(self, results):
         total_bit_rate = 0
+        total_req_rate = 0
         valid_result_count = 0
         invalid_result_count = 0
         for key, result in results.items():
             start_time_text = result.get('Start-Time', '')
             end_time_text = result.get('End-Time', '')
-            rate_text = result.get('Transfer rate', '') # Kbytes/s
-            if start_time_text and end_time_text and ' ' in rate_text:
+            rate_text = result.get('Transfer rate', '') # 1130.58 [Kbytes/sec] received
+            rps_text = result.get('Requests per second', '') # 2.73 [#/sec] (mean)
+            if start_time_text and end_time_text and ' ' in rate_text and ' ' in rps_text:
                 # Parse result fields in more detail
                 start_time = datetime.strptime(start_time_text[:26], '%Y-%m-%d %H:%M:%S %f') # 2012-12-31 23:59:59 999999999
                 end_time = datetime.strptime(end_time_text[:26], '%Y-%m-%d %H:%M:%S %f')
                 kbyte_rate_text, _rest = rate_text.split(' ', 1)
                 bit_rate = float(kbyte_rate_text) * 1024 * 8
+                req_rate_text, _rest = rps_text.split(' ', 1)
+                req_rate = float(req_rate_text)
                 total_bit_rate += bit_rate
-                print('%s: %.2f Mbit/s (%s) %s - %s' % (key, bit_rate/1024/1024, kbyte_rate_text, start_time.isoformat(), end_time.isoformat()))
+                total_req_rate += req_rate
+                print('%s: %.2f Mbit/s (%s) %.02f req/s (%s) %s - %s' % (key, bit_rate/1024/1024, kbyte_rate_text, req_rate, req_rate_text, start_time.isoformat(), end_time.isoformat()))
                 valid_result_count += 1
             else:
                 invalid_result_count += 1
+        print('------------------------------------------------------------')
         print('Total transfer rate: %.2f Mbit/s' % (total_bit_rate/1024/1024))
         print('Average transfer rate: %.2f Mbit/s' % (total_bit_rate/1024/1024/valid_result_count if valid_result_count else 0.0))
+        print('Total request rate: %.2f req/s' % (total_req_rate))
+        print('Average request rate: %.2f req/s' % (total_req_rate/valid_result_count if valid_result_count else 0.0))
+        print('------------------------------------------------------------')
         print('%d valid result(s)' % (valid_result_count))
         print('%d invalid result(s)' % (invalid_result_count))
 
